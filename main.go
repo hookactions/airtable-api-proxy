@@ -19,11 +19,13 @@ type transport struct {
 	apiKey string
 }
 
-func(t *transport) RoundTrip(r *http.Request) (*http.Response, error) {
-	log.Printf("Sending request to %q", r.URL.String())
+func (t *transport) RoundTrip(r *http.Request) (*http.Response, error) {
+	log.Printf("Sending request, %s %s", r.Method, r.URL.String())
+
 	r.Host = r.URL.Host
 	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", t.apiKey))
 	r.Header.Del("X-Forwarded-For")
+
 	return http.DefaultTransport.RoundTrip(r)
 }
 
@@ -48,7 +50,7 @@ func main() {
 	airTableApiKey := os.Getenv("AIR_TABLE_API_KEY")
 
 	router := mux.NewRouter()
-	router.HandleFunc("/{version}/{app}/{resource}", newProxyHandler(airTableApiKey)).Methods("POST")
+	router.HandleFunc("/{version}/{app}/{resource}", newProxyHandler(airTableApiKey)).Methods("POST", "OPTIONS")
 
 	srv := &http.Server{
 		Handler:      router,

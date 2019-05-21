@@ -10,4 +10,6 @@ AIR_TABLE_API_KEY=<your_key> ./airtable-api-proxy
 ```
 
 ## Docker
-WIP.
+```bash
+docker run -p 4242:4242 hookactions/airtable-api-proxy
+```
