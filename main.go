@@ -28,12 +28,12 @@ func(t *transport) RoundTrip(r *http.Request) (*http.Response, error) {
 }
 
 func newProxyHandler(apiKey string) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		uri, err := url.Parse(baseApiUrl)
-		if err != nil {
-			panic(err)
-		}
+	uri, err := url.Parse(baseApiUrl)
+	if err != nil {
+		panic(err)
+	}
 
+	return func(w http.ResponseWriter, r *http.Request) {
 		proxy := httputil.NewSingleHostReverseProxy(uri)
 		proxy.Transport = &transport{apiKey: apiKey}
 
