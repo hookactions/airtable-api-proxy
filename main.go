@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,8 +11,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-
-	_ "github.com/motemen/go-loghttp/global"
 )
 
 const baseApiUrl = "https://api.airtable.com/"
@@ -21,7 +20,8 @@ type transport struct {
 }
 
 func(t *transport) RoundTrip(r *http.Request) (*http.Response, error) {
-	log.Printf("Sending request to %q\n", r.URL.String())
+	log.Printf("Sending request to %q", r.URL.String())
+	r.Host = r.URL.Host
 	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", t.apiKey))
 	r.Header.Del("X-Forwarded-For")
 	return http.DefaultTransport.RoundTrip(r)
@@ -42,6 +42,9 @@ func newProxyHandler(apiKey string) func(http.ResponseWriter, *http.Request) {
 }
 
 func main() {
+	port := flag.Int("port", 4242, "port to run the server on")
+	flag.Parse()
+
 	airTableApiKey := os.Getenv("AIR_TABLE_API_KEY")
 
 	router := mux.NewRouter()
@@ -49,10 +52,11 @@ func main() {
 
 	srv := &http.Server{
 		Handler:      router,
-		Addr:         ":4242",
+		Addr:         fmt.Sprintf(":%d", *port),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 
+	log.Printf("Listening on %s ...", srv.Addr)
 	log.Fatal(srv.ListenAndServe())
 }
